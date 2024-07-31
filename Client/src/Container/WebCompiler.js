@@ -4,7 +4,7 @@ import Select from "react-select";
 
 const WebCompiler = () => {
   const [code, setCode] = useState("");
-  const [language, setLanguage] = useState("");
+  const [languageee, setLanguageee] = useState("");
   const [output, setOutput] = useState();
 
   const languages = [
@@ -13,11 +13,13 @@ const WebCompiler = () => {
   ];
 
   const compileCode = async () => {
-    if (!language) {
+    if (!languageee) {
       alert("Please select language!!");
     } else if (!code) {
       alert("Empty code, add relevant code snippet in editor");
     } else {
+      let language = languageee.value;
+      console.log(languageee, language);
       const payload = {
         language,
         code,
@@ -42,7 +44,7 @@ const WebCompiler = () => {
       <div>
         <label>Select Language</label>
         <div style={{ width: "300px", margin: "auto" }}>
-          <Select options={languages} onChange={setLanguage} />
+          <Select options={languages} onChange={setLanguageee} />
         </div>
       </div>
       <br />
