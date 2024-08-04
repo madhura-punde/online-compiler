@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const { MongoClient } = require("mongodb");
 
 const { generateFile } = require("./generateFile");
 const { executeCpp } = require("./executeCpp");
@@ -30,8 +29,26 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  return res.json({ hello: "world!" });
+app.get("/status", async (req, res) => {
+  const jobId = req.query.id;
+  console.log("status requested for jobid", jobId);
+  if (jobId === undefined) {
+    return res
+      .status(400)
+      .json({ success: false, error: "missing id query params" });
+  }
+
+  try {
+    const job = await Job.findById({ success: true, jobId });
+    if (job === undefined) {
+      return res.status(404).json({ success: false, error: "invalid job id" });
+    }
+
+    return res.status(200).json(job);
+  } catch (err) {
+    return res.status(400).json({ success: false, error: JSON.stringify(err) });
+  }
+  // return res.json({ hello: "world!" });
 });
 
 app.post("/run", async (req, res) => {
@@ -42,22 +59,40 @@ app.post("/run", async (req, res) => {
     return res.status(400).json({ success: false, error: "Empty code body!" });
   }
 
+  let job;
   try {
     //need to generate C++ file with content from the request
     const filePath = await generateFile(language, code);
 
-    const job = await new Job({ language, filePath }).save();
+    job = await new Job({ language, filePath }).save();
+    const jobId = job["_id"];
     //need to run the file and send the response
-    console.log(job);
+    console.log(job, jobId);
+
+    res.status(201).json({ success: true, jobId });
     let output;
+    job["startedAt"] = new Date();
+
     if (language === "Cpp") {
       output = await executeCpp(filePath);
     } else {
       output = await executePy(filePath);
     }
-    res.json({ filePath, output });
+    // res.json({ filePath, output });
+    job["completedAt"] = new Date();
+    job["status"] = "success";
+    job["output"] = output;
+
+    console.log(job);
+    await job.save();
   } catch (e) {
-    res.status(500).json({ e });
+    job["completedAt"] = new Date();
+    job["status"] = "error";
+    job["output"] = JSON.stringify(e);
+    await job.save();
+
+    console.log(job);
+    // res.status(500).json({ e });
   }
 });
 
