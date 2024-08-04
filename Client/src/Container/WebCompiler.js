@@ -6,6 +6,7 @@ const WebCompiler = () => {
   const [code, setCode] = useState("");
   const [languageee, setLanguageee] = useState("");
   const [output, setOutput] = useState();
+  const [jobStatus, setJobStatus] = useState();
 
   const languages = [
     { value: "Cpp", label: "C++" },
@@ -26,7 +27,33 @@ const WebCompiler = () => {
       };
       try {
         const { data } = await axios.post("http://localhost:8080/run", payload);
-        setOutput(data.output);
+        console.log("data", data);
+        setOutput(data.jobId);
+        setJobStatus(data.success);
+        let pollInterval;
+        // need to poll here
+        // pollInterval = setInterval(async () => {
+        //   const { data: dataResults } = await axios.get(
+        //     "http://localhost:8080/status",
+        //     { params: { id: data.jobId } }
+        //   );
+        //   // console.log(dataResults);
+        //   const { success, job, error } = dataResults;
+        //   console.log(dataResults);
+        //   if (success) {
+        //     const { status: jobStatus, output: jobOutput } = job;
+        //     // setStatus(jobStatus);
+        //     // setJobDetails(job);
+        //     if (jobStatus === "pending") return;
+        //     setOutput(jobOutput);
+        //     clearInterval(pollInterval);
+        //   } else {
+        //     console.error(error);
+        //     setOutput(error);
+        //     // setStatus("Bad request");
+        //     clearInterval(pollInterval);
+        //   }
+        // }, 1000);
       } catch ({ response }) {
         if (response) {
           const errorMsg = response.data.e.stderr;
@@ -37,7 +64,7 @@ const WebCompiler = () => {
       }
     }
   };
-
+  console.log(jobStatus);
   return (
     <div>
       <h1>Web-based Compiler</h1>
@@ -61,6 +88,7 @@ const WebCompiler = () => {
       <div>
         <h2>Output:</h2>
         {output}
+        {jobStatus && <p>{jobStatus} completed successfully</p>}
       </div>
     </div>
   );
