@@ -23,10 +23,6 @@ const WebCompiler = () => {
     setLanguageee(defaultLang);
   }, []);
 
-  useEffect(() => {
-    setCode(stubs[languageee]);
-  }, [languageee]);
-
   const compileCode = async () => {
     setOutput("");
 
