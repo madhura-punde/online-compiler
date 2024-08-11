@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 
 const WebCompiler = () => {
@@ -9,11 +9,27 @@ const WebCompiler = () => {
   const [jobStatus, setJobStatus] = useState();
 
   const languages = [
-    { value: "Cpp", label: "C++" },
+    { value: "cpp", label: "C++" },
     { value: "Py", label: "Python" },
   ];
 
+  const setDefaultLanguage = () => {
+    localStorage.setItem("default-language", languageee.value);
+    console.log(`${languageee.value} set as default!`);
+  };
+
+  useEffect(() => {
+    const defaultLang = localStorage.getItem("default-language") || "cpp";
+    setLanguageee(defaultLang);
+  }, []);
+
+  useEffect(() => {
+    setCode(stubs[languageee]);
+  }, [languageee]);
+
   const compileCode = async () => {
+    setOutput("");
+
     if (!languageee) {
       alert("Please select language!!");
     } else if (!code) {
@@ -64,7 +80,7 @@ const WebCompiler = () => {
       }
     }
   };
-  console.log(jobStatus);
+
   return (
     <div>
       <h1>Web-based Compiler</h1>
@@ -73,6 +89,10 @@ const WebCompiler = () => {
         <div style={{ width: "300px", margin: "auto" }}>
           <Select options={languages} onChange={setLanguageee} />
         </div>
+      </div>
+      <br />
+      <div>
+        <button onClick={setDefaultLanguage}>Set Default</button>
       </div>
       <br />
       <label>Code Editor</label>
